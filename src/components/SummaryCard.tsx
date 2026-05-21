@@ -25,7 +25,6 @@ function SectionHeader({ title }: { title: string }) {
   )
 }
 
-// Função auxiliar para formatar datas no padrão BR (YYYY-MM-DD -> DD/MM/YYYY)
 const formatDataBR = (dataStr?: string) => {
   if (!dataStr) return '—'
   const partes = dataStr.split('-')
@@ -39,7 +38,7 @@ export function SummaryCard({ summary, fieldCount, data }: SummaryCardProps) {
   const isAtivo = status === 'ativa' || status === 'habilitado'
   const situacaoClass = isAtivo ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
 
-  // --- EXTRAÇÃO DE DADOS FEDERAIS PROFUNDOS ---
+  // --- EXTRAÇÃO DE DADOS FEDERAIS E CADASTRAIS ---
   const atividadesSecundarias = data?.estabelecimento?.atividades_secundarias || []
   const socios = data?.socios || []
   
@@ -47,7 +46,10 @@ export function SummaryCard({ summary, fieldCount, data }: SummaryCardProps) {
   const capitalSocial = data?.capital_social ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(data.capital_social)) : '—'
   const natJuridica = data?.natureza_juridica?.descricao ? `${data.natureza_juridica.id || ''} - ${data.natureza_juridica.descricao}` : '—'
 
-  // --- DADOS DO SIMPLES NACIONAL ---
+  // Situação Cadastral (Motivos e Datas)
+  const dataSitCad = data?.estabelecimento?.data_situacao_cadastral ? formatDataBR(data.estabelecimento.data_situacao_cadastral) : '—'
+  const motivoSitCad = data?.estabelecimento?.motivo_situacao_cadastral?.descricao || 'REGULAR / NÃO APLICÁVEL'
+
   const simples = data?.simples || {}
   const optanteSimples = simples.simples === 'S' ? 'Sim' : 'Não'
   const dataOpcaoSimples = formatDataBR(simples.data_opcao_simples)
@@ -70,31 +72,40 @@ export function SummaryCard({ summary, fieldCount, data }: SummaryCardProps) {
         )}
       </div>
 
-      {/* --- SEÇÃO: IDENTIFICAÇÃO BÁSICA --- */}
+      {/* --- SEÇÃO 1: IDENTIFICAÇÃO BÁSICA --- */}
       <SectionHeader title="1. Identificação Básica" />
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-0">
         <TableCell label="Nome Fantasia" value={summary.fantasia || '—'} colSpan={2} />
         <TableCell label="Inscrição Estadual" value={summary.inscricoesEstaduais || 'Não Informada'} colSpan={2} />
       </div>
 
-      {/* --- SEÇÃO: DADOS CORPORATIVOS E FINANCEIROS --- */}
-      <SectionHeader title="2. Dados Corporativos" />
+      {/* --- SEÇÃO 2: STATUS CADASTRAL (NOVO) --- */}
+      <SectionHeader title="2. Status Cadastral na Receita Federal" />
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-0">
+        <TableCell label="Situação Atual" value={summary.situacao} colSpan={1} />
+        <TableCell label="Data da Situação" value={dataSitCad} colSpan={1} />
+        {/* Usamos colSpan={2} para o motivo, pois o texto costuma ser longo */}
+        <TableCell label="Motivo da Situação Cadastral" value={motivoSitCad} colSpan={2} />
+      </div>
+
+      {/* --- SEÇÃO 3: DADOS CORPORATIVOS --- */}
+      <SectionHeader title="3. Dados Corporativos" />
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-0">
         <TableCell label="Porte da Empresa" value={porte} colSpan={1} />
         <TableCell label="Capital Social" value={capitalSocial} colSpan={1} />
         <TableCell label="Natureza Jurídica" value={natJuridica} colSpan={2} />
       </div>
 
-      {/* --- SEÇÃO: REGIME TRIBUTÁRIO --- */}
-      <SectionHeader title="3. Regime Tributário (Federal)" />
+      {/* --- SEÇÃO 4: REGIME TRIBUTÁRIO --- */}
+      <SectionHeader title="4. Regime Tributário (Federal)" />
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-0">
         <TableCell label="Optante pelo Simples?" value={optanteSimples} colSpan={1} />
         <TableCell label="Data da Opção (Simples)" value={dataOpcaoSimples} colSpan={1} />
         <TableCell label="Data da Exclusão (Simples)" value={dataExclusaoSimples} colSpan={2} />
       </div>
 
-      {/* --- SEÇÃO: ENDEREÇO E CONTATO --- */}
-      <SectionHeader title="4. Localização e Contato" />
+      {/* --- SEÇÃO 5: ENDEREÇO E CONTATO --- */}
+      <SectionHeader title="5. Localização e Contato" />
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-0">
         <TableCell label="Logradouro / Endereço" value={summary.endereco} colSpan={4} />
         <TableCell label="Cidade / UF" value={summary.cidadeUf} colSpan={2} />
@@ -102,14 +113,14 @@ export function SummaryCard({ summary, fieldCount, data }: SummaryCardProps) {
         <TableCell label="E-mail" value={summary.email || '—'} colSpan={1} />
       </div>
 
-      {/* --- SEÇÃO: ATIVIDADE PRINCIPAL --- */}
-      <SectionHeader title="5. Atividade Econômica Principal" />
+      {/* --- SEÇÃO 6: ATIVIDADE PRINCIPAL --- */}
+      <SectionHeader title="6. Atividade Econômica Principal" />
       <div className="grid grid-cols-1 gap-0">
         <TableCell label="CNAE Principal" value={summary.cnae} colSpan={1} />
       </div>
 
-      {/* --- SEÇÃO: ATIVIDADES SECUNDÁRIAS --- */}
-      <SectionHeader title="6. Atividades Econômicas Secundárias" />
+      {/* --- SEÇÃO 7: ATIVIDADES SECUNDÁRIAS --- */}
+      <SectionHeader title="7. Atividades Econômicas Secundárias" />
       <div className="border border-slate-700 bg-slate-900/50 p-4">
         {atividadesSecundarias.length > 0 ? (
           <ul className="space-y-2 max-h-48 overflow-y-auto pr-2 text-sm text-slate-300 scrollbar-thin scrollbar-thumb-slate-700">
@@ -127,8 +138,8 @@ export function SummaryCard({ summary, fieldCount, data }: SummaryCardProps) {
         )}
       </div>
 
-      {/* --- SEÇÃO: QUADRO DE SÓCIOS (QSA) --- */}
-      <SectionHeader title="7. Quadro de Sócios e Administradores (QSA)" />
+      {/* --- SEÇÃO 8: QUADRO DE SÓCIOS (QSA) --- */}
+      <SectionHeader title="8. Quadro de Sócios e Administradores (QSA)" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 bg-slate-950/20">
         {socios.length > 0 ? (
           socios.map((socio: any, idx: number) => (
