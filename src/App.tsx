@@ -50,7 +50,6 @@ export default function App() {
   const summary = data ? extractSummary(data) : null
 
   return (
-    // Alteração principal: Fundo escuro (slate-950) e texto claro (slate-200)
     <div className="min-h-screen bg-slate-950 px-4 py-8 text-slate-200 sm:px-6 lg:py-12">
       <div className="mx-auto max-w-5xl">
         <header className="mb-10 text-center">
@@ -63,7 +62,6 @@ export default function App() {
           </p>
         </header>
 
-        {/* Card de Busca Moderno */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
           <form className="flex flex-col gap-4 sm:flex-row sm:items-end" onSubmit={(e) => { e.preventDefault(); void consultar(); }}>
             <div className="flex-1">
@@ -76,11 +74,34 @@ export default function App() {
           </form>
         </div>
 
+        {/* Adicionado o Loading de volta */}
+        {fetchState === 'loading' && (
+          <div className="mt-6 flex justify-center">
+            <LoadingSpinner />
+          </div>
+        )}
+
+        {/* Adicionado o Alerta de Erro de volta */}
+        {fetchState === 'error' && errorMessage && (
+          <div className="mt-6">
+            <ErrorAlert message={errorMessage} onDismiss={() => setFetchState('idle')} />
+          </div>
+        )}
+
         {fetchState === 'success' && data && summary && (
           <div className="mt-8 space-y-6">
+            {/* Adicionados os Botões de JSON de volta */}
+            <div className="flex flex-wrap gap-3">
+              <button type="button" onClick={() => setJsonModalOpen(true)} className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-700">
+                Ver JSON bruto
+              </button>
+              <button type="button" onClick={() => void navigator.clipboard.writeText(JSON.stringify(data, null, 2))} className="rounded-lg border border-blue-900 bg-blue-900/30 px-4 py-2 text-sm font-semibold text-blue-400 transition hover:bg-blue-900/50">
+                Copiar JSON
+              </button>
+            </div>
+
             <SummaryCard summary={summary} fieldCount={fieldCount} />
             
-            {/* Container Dinâmico com fundo escuro */}
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-inner">
               <h2 className="mb-4 text-xl font-semibold text-white">Detalhamento Técnico</h2>
               <DynamicDataViewer data={data} />
@@ -88,6 +109,9 @@ export default function App() {
           </div>
         )}
       </div>
+      
+      {/* Modal de JSON reativado */}
+      <RawJsonModal open={jsonModalOpen} data={data} onClose={() => setJsonModalOpen(false)} />
     </div>
   )
 }
