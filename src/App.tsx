@@ -100,7 +100,7 @@ export default function App() {
               </button>
             </div>
 
-            <SummaryCard summary={summary} fieldCount={fieldCount} />
+            <SummaryCard summary={summary} fieldCount={fieldCount} data={data} />
             
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-inner">
               <h2 className="mb-4 text-xl font-semibold text-white">Detalhamento Técnico</h2>
