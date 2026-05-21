@@ -12,7 +12,6 @@ import { extractSummary } from './utils/summary'
 const API_BASE = 'https://publica.cnpj.ws/cnpj'
 type FetchState = 'idle' | 'loading' | 'success' | 'error'
 
-// Definição da estrutura do item de histórico
 interface HistoricoItem {
   cnpj: string;
   razaoSocial: string;
@@ -26,10 +25,8 @@ export default function App() {
   const [data, setData] = useState<Record<string, unknown> | null>(null)
   const [jsonModalOpen, setJsonModalOpen] = useState(false)
   
-  // Estado para armazenar o histórico local
   const [historico, setHistorico] = useState<HistoricoItem[]>([])
 
-  // Efeito executado ao montar o componente: carrega dados salvos no navegador
   useEffect(() => {
     const dadosSalvos = localStorage.getItem('cnpj_panel_history')
     if (dadosSalvos) {
@@ -43,6 +40,15 @@ export default function App() {
 
   const consultarCnpjDireto = useCallback(async (cnpjAlvo: string) => {
     const digits = onlyDigits(cnpjAlvo)
+
+    // A validação voltou para cá! Isso resolve o erro do TypeScript.
+    if (!isValidCnpjLength(cnpjAlvo)) {
+      setErrorMessage('Informe um CNPJ válido com 14 dígitos.')
+      setFetchState('error')
+      setData(null)
+      return
+    }
+
     setFetchState('loading')
     setErrorMessage(null)
     setData(null)
@@ -58,15 +64,12 @@ export default function App() {
       setData(dataObj)
       setFetchState('success')
 
-      // Atualização atómica do histórico local
       const cnpjItem = dataObj?.estabelecimento?.cnpj || digits
       const razaoItem = dataObj?.razao_social || 'Sem Razão Social'
       const dataAtual = new Date().toLocaleDateString('pt-BR')
 
       setHistorico((prev) => {
-        // Remove o item se ele já existir na lista antiga (evita duplicados)
         const filtrado = prev.filter((item) => item.cnpj !== cnpjItem)
-        // Adiciona no topo e limita o tamanho máximo a 5 registos
         const atualizado = [
           { cnpj: cnpjItem, razaoSocial: razaoItem, dataConsulta: dataAtual },
           ...filtrado
@@ -109,7 +112,6 @@ export default function App() {
           </p>
         </header>
 
-        {/* Formulário Principal de Procura */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
           <form className="flex flex-col gap-4 sm:flex-row sm:items-end" onSubmit={handleSubmeter}>
             <div className="flex-1">
@@ -122,7 +124,6 @@ export default function App() {
           </form>
         </div>
 
-        {/* SEÇÃO: CONSULTAS RECENTES (HISTÓRICO) */}
         {historico.length > 0 && (
           <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
